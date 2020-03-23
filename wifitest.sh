@@ -6,20 +6,51 @@
 BOARD_NO=1
 HOSTIP=192.168.0.180
 LOG_FILE=log
+AP_SSID="AP1"
+AP_PW="AP1_password"
+
+function set_connection {
+	echo "----- set connection"
+	nmcli radio wifi on
+	nmcli dev wifi con ${AP_SSID} password ${AP_PW}
+}
+
+function valid_ip {
+	local  ip=$1
+	local  stat=1
+
+	if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+		OIFS=$IFS
+		IFS='.'
+		ip=($ip)
+		IFS=$OIFS
+		[[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+			&& ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+		stat=$?
+	fi
+
+	return $stat
+}
 
 function check_connection {
 	echo "----- start check connection"
 
 	### Check ip address
 	ipaddr=`ip addr show wlan0 2>/dev/null|awk '/inet / {print $2}'|cut -f1 -d"/"`
-	num_ipaddr=`echo $ipaddr | wc -m`
+	echo "ipaddr $ipaddr"
 
-	if [ $num_ipaddr -eq 0 ]; then
-		echo "ipaddr fail, check network"
-		echo "ipaddr fail, check network" > fail.log
+	if [ -z "$ipaddr" ]; then
+		echo "no valid ipaddr, check network"
+		echo "no valid ipaddr, FAIL" > fail.log
 		exit 1
+	fi
+
+	### check ip validation
+	if valid_ip $ipaddr; then
+		echo "valid ip address"
 	else
-		echo "ipaddr : $ipaddr , num : $num_ipaddr"
+		echo "invalid ip, check network"
+		echo "invalid ip, check network" > fail.log
 	fi
 
 	### Check wifi channel
