@@ -76,13 +76,13 @@ function check_connection {
 function run_iperf3 {
 	echo "----- start iperf3"
 	echo "----- iperf3 -----" >> $LOG_FILE
-	iperf_tx=`iperf3 -c ${HOSTIP} -t 1 -P 10 | grep 'sender' | grep SUM | awk '{print $6}'`
+	iperf_tx=`iperf3 -c ${HOSTIP} -t 10 -P 10 | grep 'sender' | grep SUM | awk '{print $6}'`
 	if [ -z "$iperf_tx" ]; then
 		echo "Check iperf server daemon of Host"
 		echo "Check iperf server daemon of Host" >> $LOG_FILE
 		return 0;
 	fi
-	iperf_rx=`iperf3 -c ${HOSTIP} -t 1 -P 10 | grep 'receiver' | grep SUM | awk '{print $6}'`
+	iperf_rx=`iperf3 -c ${HOSTIP} -t 10 -P 10 | grep 'receiver' | grep SUM | awk '{print $6}'`
 
 	printf 'iperf tx/rx (Mbits/sec)\n%s\n%s\n' "$iperf_tx" "$iperf_rx" >> $LOG_FILE
 }
